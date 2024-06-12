@@ -8,8 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\" />
-    <Folder Include="Services\" />
+    <Folder Include="Migrations\" />
     <Folder Include="Utilities\" />
   </ItemGroup>
 

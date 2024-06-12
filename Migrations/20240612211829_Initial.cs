@@ -5,7 +5,7 @@
 namespace WordNET_Server_2._0.Migrations
 {
     /// <inheritdoc />
-    public partial class AddedTables : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -52,10 +52,10 @@ namespace WordNET_Server_2._0.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ManCount = table.Column<int>(type: "int", nullable: false),
-                    ManAvarageAge = table.Column<int>(type: "int", nullable: false),
+                    ManAvarageAge = table.Column<double>(type: "float", nullable: false),
                     WomanCount = table.Column<int>(type: "int", nullable: false),
-                    WomanAvarageAge = table.Column<int>(type: "int", nullable: false),
-                    AssociatedWordId = table.Column<int>(type: "int", nullable: false)
+                    WomanAvarageAge = table.Column<double>(type: "float", nullable: false),
+                    AssociatedWordId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -64,8 +64,7 @@ namespace WordNET_Server_2._0.Migrations
                         name: "FK_Statistics_AssociatedWord_AssociatedWordId",
                         column: x => x.AssociatedWordId,
                         principalTable: "AssociatedWord",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -77,7 +76,8 @@ namespace WordNET_Server_2._0.Migrations
                 name: "IX_Statistics_AssociatedWordId",
                 table: "Statistics",
                 column: "AssociatedWordId",
-                unique: true);
+                unique: true,
+                filter: "[AssociatedWordId] IS NOT NULL");
         }
 
         /// <inheritdoc />
