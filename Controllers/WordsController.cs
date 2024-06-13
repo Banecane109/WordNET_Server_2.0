@@ -136,7 +136,12 @@ namespace WordNET_Server_2._0.Controllers
 
                                 WomanCount = aw.Statistics.WomanCount,
                                 WomanAverageAge = aw.Statistics.WomanAverageAge,
-                            }
+
+                                AssociatedWordId = aw.Id,
+                            },
+
+                            StatisticsId = aw.Statistics.Id,
+                            WordId = w.Id,
                         }),
                     });
 

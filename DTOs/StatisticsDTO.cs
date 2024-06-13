@@ -9,5 +9,7 @@
 
         public int WomanCount { get; set; }
         public double WomanAverageAge { get; set; }
+
+        public int AssociatedWordId { get; set; }
     }
 }

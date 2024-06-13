@@ -6,6 +6,9 @@
         public string Name { get; set; } = null!;
         public int Count { get; set; }
 
+        public int StatisticsId { get; set; }
         public StatisticsDTO Statistics { get; set; } = null!;
+
+        public int WordId { get; set; }
     }
 }
