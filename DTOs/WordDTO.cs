@@ -1,11 +1,10 @@
 ﻿namespace WordNET_Server_2._0.DTOs
 {
-    public class AssociatedWordDTO
+    public class WordDTO
     {
         public int Id { get; set; }
         public string Name { get; set; } = null!;
-        public int Count { get; set; }
 
-        public StatisticsDTO Statistics { get; set; } = null!;
+        public IEnumerable<AssociatedWordDTO> AssociatedWords { get; set; } = [];
     }
 }

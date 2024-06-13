@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using WordNET_Server_2._0.DBRelations;
 using WordNET_Server_2._0.DTOs;
 using WordNET_Server_2._0.Models;
@@ -16,7 +17,7 @@ namespace WordNET_Server_2._0.Controllers
 
 
         [HttpPost("AddAssociatedWord")]
-        public async Task<IActionResult> AddAssociatedWord([FromBody] AssociatedWordDTO associatedWordDTO)
+        public async Task<IActionResult> AddAssociatedWord([FromBody] UserAssociatedWordDTO associatedWordDTO)
         {
             try
             {
@@ -100,6 +101,46 @@ namespace WordNET_Server_2._0.Controllers
                 #endregion
 
                 return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("GetWords")]
+        public IActionResult GetWords()
+        {
+            try
+            {
+                IEnumerable<WordDTO> words = _dbContext.Word
+                    .Include(w => w.AssociatedWords)
+                    .ThenInclude(aw => aw.Statistics)
+                    .Select(w => new WordDTO
+                    {
+                        Id = w.Id,
+                        Name = w.Name,
+
+                        AssociatedWords = w.AssociatedWords.Select(aw => new AssociatedWordDTO
+                        {
+                            Id = aw.Id,
+                            Name = aw.Name,
+                            Count = aw.Count,
+
+                            Statistics = new StatisticsDTO
+                            {
+                                Id = aw.Statistics.Id,
+
+                                ManCount = aw.Statistics.ManCount,
+                                ManAverageAge = aw.Statistics.ManAverageAge,
+
+                                WomanCount = aw.Statistics.WomanCount,
+                                WomanAverageAge = aw.Statistics.WomanAverageAge,
+                            }
+                        }),
+                    });
+
+                return Ok(JsonConvert.SerializeObject(words));
             }
             catch (Exception ex)
             {
