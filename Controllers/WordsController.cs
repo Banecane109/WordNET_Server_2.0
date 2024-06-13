@@ -37,23 +37,20 @@ namespace WordNET_Server_2._0.Controllers
 
                     try
                     {
-                        AssociatedWord? associatedWord = await _tempdbcontext.AssociatedWord.FirstOrDefaultAsync(aw => aw.Name == associatedWordDTO.Name);
+                        AssociatedWord? associatedWord = await _tempdbcontext.AssociatedWord
+                            .Include(aw => aw.Statistics)
+                            .FirstOrDefaultAsync(aw => aw.Name == associatedWordDTO.Name && aw.WordId == associatedWordDTO.WordId);
 
                         if (associatedWord is null)
                         {
-                            Statistics statistics = new()
+                            Statistics createdStatistics = new()
                             {
                                 ManCount = associatedWordDTO.IsMan is true ? 1 : 0,
-                                ManAvarageAge = associatedWordDTO.IsMan is true ? associatedWordDTO.HumanAge : 0,
+                                ManAverageAge = associatedWordDTO.IsMan is true ? associatedWordDTO.HumanAge : 0,
 
                                 WomanCount = associatedWordDTO.IsMan is false ? 1 : 0,
-                                WomanAvarageAge = associatedWordDTO.IsMan is false ? associatedWordDTO.HumanAge : 0,
-
-                                AssociatedWordId = null,
+                                WomanAverageAge = associatedWordDTO.IsMan is false ? associatedWordDTO.HumanAge : 0,
                             };
-
-                            _tempdbcontext.Statistics.Add(statistics);
-                            await _tempdbcontext.SaveChangesAsync();
 
                             AssociatedWord createdAssociatedWord = new()
                             {
@@ -61,31 +58,29 @@ namespace WordNET_Server_2._0.Controllers
                                 Count = 1,
 
                                 WordId = word.Id,
-                                StatisticsId = statistics.Id,
+                                Statistics = createdStatistics,
                             };
 
                             _tempdbcontext.AssociatedWord.Add(createdAssociatedWord);
                             await _tempdbcontext.SaveChangesAsync();
 
-                            statistics.AssociatedWordId = createdAssociatedWord.Id;
+                            createdStatistics.AssociatedWordId = createdAssociatedWord.Id;
+                            createdAssociatedWord.StatisticsId = createdStatistics.Id;
                             await _tempdbcontext.SaveChangesAsync();
                         }
                         else
                         {
-                            Statistics? existingStatistics = await _tempdbcontext.Statistics.FindAsync(associatedWord?.StatisticsId)
-                                ?? throw new Exception("Required Statistics Are Not Found");
-
                             if (associatedWordDTO.IsMan is true)
                             {
-                                existingStatistics.ManCount += 1;
-                                existingStatistics.ManAvarageAge = (double)(existingStatistics.ManAvarageAge + associatedWordDTO.HumanAge) / existingStatistics.ManCount;
+                                associatedWord.Statistics.ManCount += 1;
+                                associatedWord.Statistics.ManAverageAge = (double)(associatedWord.Statistics.ManAverageAge + associatedWordDTO.HumanAge) / associatedWord.Statistics.ManCount;
 
                                 await _tempdbcontext.SaveChangesAsync();
                             }
                             else
                             {
-                                existingStatistics.WomanCount += 1;
-                                existingStatistics.WomanAvarageAge = (double)(existingStatistics.WomanAvarageAge + associatedWordDTO.HumanAge) / existingStatistics.WomanCount;
+                                associatedWord.Statistics.WomanCount += 1;
+                                associatedWord.Statistics.WomanAverageAge = (double)(associatedWord.Statistics.WomanAverageAge + associatedWordDTO.HumanAge) / associatedWord.Statistics.WomanCount;
 
                                 await _tempdbcontext.SaveChangesAsync();
                             }

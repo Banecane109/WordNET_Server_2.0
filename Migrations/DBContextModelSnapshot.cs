@@ -61,13 +61,13 @@ namespace WordNET_Server_2._0.Migrations
                     b.Property<int?>("AssociatedWordId")
                         .HasColumnType("int");
 
-                    b.Property<double>("ManAvarageAge")
+                    b.Property<double>("ManAverageAge")
                         .HasColumnType("float");
 
                     b.Property<int>("ManCount")
                         .HasColumnType("int");
 
-                    b.Property<double>("WomanAvarageAge")
+                    b.Property<double>("WomanAverageAge")
                         .HasColumnType("float");
 
                     b.Property<int>("WomanCount")
@@ -101,18 +101,28 @@ namespace WordNET_Server_2._0.Migrations
 
             modelBuilder.Entity("WordNET_Server_2._0.Models.AssociatedWord", b =>
                 {
-                    b.HasOne("WordNET_Server_2._0.Models.Word", null)
+                    b.HasOne("WordNET_Server_2._0.Models.Word", "Word")
                         .WithMany("AssociatedWords")
                         .HasForeignKey("WordId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Word");
                 });
 
             modelBuilder.Entity("WordNET_Server_2._0.Models.Statistics", b =>
                 {
-                    b.HasOne("WordNET_Server_2._0.Models.AssociatedWord", null)
-                        .WithOne()
+                    b.HasOne("WordNET_Server_2._0.Models.AssociatedWord", "AssociatedWord")
+                        .WithOne("Statistics")
                         .HasForeignKey("WordNET_Server_2._0.Models.Statistics", "AssociatedWordId");
+
+                    b.Navigation("AssociatedWord");
+                });
+
+            modelBuilder.Entity("WordNET_Server_2._0.Models.AssociatedWord", b =>
+                {
+                    b.Navigation("Statistics")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("WordNET_Server_2._0.Models.Word", b =>

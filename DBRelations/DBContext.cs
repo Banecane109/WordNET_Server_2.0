@@ -13,24 +13,16 @@ namespace WordNET_Server_2._0.DBRelations
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Word>()
-                .HasKey(w => w.Id);
-
-            modelBuilder.Entity<AssociatedWord>()
-                .HasKey(aw => aw.Id);
-
-            modelBuilder.Entity<Statistics>()
-                .HasKey(s => s.Id);
-
-
-            modelBuilder.Entity<AssociatedWord>()
-                .HasOne<Word>()
-                .WithMany(w => w.AssociatedWords)
+                .HasMany(w => w.AssociatedWords)
+                .WithOne(aw => aw.Word)
                 .HasForeignKey(aw => aw.WordId);
 
-            modelBuilder.Entity<Statistics>()
-                .HasOne<AssociatedWord>()
-                .WithOne()
+            modelBuilder.Entity<AssociatedWord>()
+                .HasOne(aw => aw.Statistics)
+                .WithOne(s => s.AssociatedWord)
                 .HasForeignKey<Statistics>(s => s.AssociatedWordId);
+
+            base.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

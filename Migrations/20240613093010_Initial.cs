@@ -52,9 +52,9 @@ namespace WordNET_Server_2._0.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ManCount = table.Column<int>(type: "int", nullable: false),
-                    ManAvarageAge = table.Column<double>(type: "float", nullable: false),
+                    ManAverageAge = table.Column<double>(type: "float", nullable: false),
                     WomanCount = table.Column<int>(type: "int", nullable: false),
-                    WomanAvarageAge = table.Column<double>(type: "float", nullable: false),
+                    WomanAverageAge = table.Column<double>(type: "float", nullable: false),
                     AssociatedWordId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>

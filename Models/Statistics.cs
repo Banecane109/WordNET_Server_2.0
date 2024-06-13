@@ -5,11 +5,12 @@
         public int Id { get; set; }
 
         public int ManCount { get; set; }
-        public double ManAvarageAge { get; set; }
+        public double ManAverageAge { get; set; }
 
         public int WomanCount { get; set; }
-        public double WomanAvarageAge { get; set; }
+        public double WomanAverageAge { get; set; }
 
         public int? AssociatedWordId { get; set; }
+        public AssociatedWord AssociatedWord { get; set; } = null!;
     }
 }
