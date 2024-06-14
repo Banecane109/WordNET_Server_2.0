@@ -51,10 +51,6 @@ namespace WordNET_Server_2._0.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ManCount = table.Column<int>(type: "int", nullable: false),
-                    ManAverageAge = table.Column<double>(type: "float", nullable: false),
-                    WomanCount = table.Column<int>(type: "int", nullable: false),
-                    WomanAverageAge = table.Column<double>(type: "float", nullable: false),
                     AssociatedWordId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -64,8 +60,35 @@ namespace WordNET_Server_2._0.Migrations
                         name: "FK_Statistics_AssociatedWord_AssociatedWordId",
                         column: x => x.AssociatedWordId,
                         principalTable: "AssociatedWord",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "Ages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    IsMan = table.Column<bool>(type: "bit", nullable: false),
+                    Age = table.Column<int>(type: "int", nullable: false),
+                    StatisticsId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Ages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Ages_Statistics_StatisticsId",
+                        column: x => x.StatisticsId,
+                        principalTable: "Statistics",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ages_StatisticsId",
+                table: "Ages",
+                column: "StatisticsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AssociatedWord_WordId",
@@ -83,6 +106,9 @@ namespace WordNET_Server_2._0.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Ages");
+
             migrationBuilder.DropTable(
                 name: "Statistics");
 

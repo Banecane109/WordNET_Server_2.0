@@ -6,9 +6,8 @@
         public string Name { get; set; } = null!;
         public int Count { get; set; }
 
-        public int StatisticsId { get; set; }
-        public StatisticsDTO Statistics { get; set; } = null!;
+        public IEnumerable<AgesDTO> Ages { get; set; } = [];
 
-        public int WordId { get; set; }
+        public int WordId { get; set; } 
     }
 }

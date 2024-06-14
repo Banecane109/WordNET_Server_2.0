@@ -44,14 +44,13 @@ namespace WordNET_Server_2._0.Controllers
 
                         if (associatedWord is null)
                         {
-                            Statistics createdStatistics = new()
+                            Ages createdAges = new()
                             {
-                                ManCount = associatedWordDTO.IsMan is true ? 1 : 0,
-                                ManAverageAge = associatedWordDTO.IsMan is true ? associatedWordDTO.HumanAge : 0,
-
-                                WomanCount = associatedWordDTO.IsMan is false ? 1 : 0,
-                                WomanAverageAge = associatedWordDTO.IsMan is false ? associatedWordDTO.HumanAge : 0,
+                                IsMan = associatedWordDTO.IsMan,
+                                Age = associatedWordDTO.HumanAge,
                             };
+
+                            Statistics createdStatistics = new();
 
                             AssociatedWord createdAssociatedWord = new()
                             {
@@ -65,26 +64,26 @@ namespace WordNET_Server_2._0.Controllers
                             _tempdbcontext.AssociatedWord.Add(createdAssociatedWord);
                             await _tempdbcontext.SaveChangesAsync();
 
-                            createdStatistics.AssociatedWordId = createdAssociatedWord.Id;
                             createdAssociatedWord.StatisticsId = createdStatistics.Id;
+
+                            createdStatistics.AssociatedWordId = createdAssociatedWord.Id;
+                            createdStatistics.AssociatedWord = createdAssociatedWord;
+
+                            createdAges.StatisticsId = createdStatistics.Id;
+                            createdAges.Statistics = createdStatistics;
                             await _tempdbcontext.SaveChangesAsync();
                         }
                         else
                         {
-                            if (associatedWordDTO.IsMan is true)
+                            Ages ages = new()
                             {
-                                associatedWord.Statistics.ManCount += 1;
-                                associatedWord.Statistics.ManAverageAge = (double)(associatedWord.Statistics.ManAverageAge + associatedWordDTO.HumanAge) / associatedWord.Statistics.ManCount;
+                                IsMan = associatedWordDTO.IsMan,
+                                Age = associatedWordDTO.HumanAge,
+                                StatisticsId = associatedWord.Statistics.Id,
+                            };
 
-                                await _tempdbcontext.SaveChangesAsync();
-                            }
-                            else
-                            {
-                                associatedWord.Statistics.WomanCount += 1;
-                                associatedWord.Statistics.WomanAverageAge = (double)(associatedWord.Statistics.WomanAverageAge + associatedWordDTO.HumanAge) / associatedWord.Statistics.WomanCount;
-
-                                await _tempdbcontext.SaveChangesAsync();
-                            }
+                            await _tempdbcontext.Ages.AddAsync(ages);
+                            await _tempdbcontext.SaveChangesAsync();
 
                             associatedWord.Count += 1;
                             await _tempdbcontext.SaveChangesAsync();
@@ -108,14 +107,15 @@ namespace WordNET_Server_2._0.Controllers
             }
         }
 
-        [HttpGet("GetWords")]
-        public IActionResult GetWords()
+        [HttpGet("GetWordsFull")]
+        public IActionResult GetWordsFull()
         {
             try
             {
                 IEnumerable<WordDTO> words = _dbContext.Word
                     .Include(w => w.AssociatedWords)
                     .ThenInclude(aw => aw.Statistics)
+                    .ThenInclude(s => s.Ages)
                     .Select(w => new WordDTO
                     {
                         Id = w.Id,
@@ -127,22 +127,34 @@ namespace WordNET_Server_2._0.Controllers
                             Name = aw.Name,
                             Count = aw.Count,
 
-                            Statistics = new StatisticsDTO
+                            Ages = aw.Statistics.Ages.Select(a => new AgesDTO
                             {
-                                Id = aw.Statistics.Id,
-
-                                ManCount = aw.Statistics.ManCount,
-                                ManAverageAge = aw.Statistics.ManAverageAge,
-
-                                WomanCount = aw.Statistics.WomanCount,
-                                WomanAverageAge = aw.Statistics.WomanAverageAge,
-
-                                AssociatedWordId = aw.Id,
-                            },
-
-                            StatisticsId = aw.Statistics.Id,
+                                Id = a.Age,
+                                IsMan = a.IsMan,
+                                Age = a.Age,
+                            }),
                             WordId = w.Id,
                         }),
+                    });
+
+                return Ok(JsonConvert.SerializeObject(words));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("GetWords")]
+        public IActionResult GetWords()
+        {
+            try
+            {
+                IEnumerable<WordDTO> words = _dbContext.Word
+                    .Select(w => new WordDTO
+                    {
+                        Id = w.Id,
+                        Name = w.Name,
                     });
 
                 return Ok(JsonConvert.SerializeObject(words));

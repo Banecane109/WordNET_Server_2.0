@@ -22,6 +22,30 @@ namespace WordNET_Server_2._0.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("WordNET_Server_2._0.Models.Ages", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Age")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsMan")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("StatisticsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StatisticsId");
+
+                    b.ToTable("Ages");
+                });
+
             modelBuilder.Entity("WordNET_Server_2._0.Models.AssociatedWord", b =>
                 {
                     b.Property<int>("Id")
@@ -61,18 +85,6 @@ namespace WordNET_Server_2._0.Migrations
                     b.Property<int?>("AssociatedWordId")
                         .HasColumnType("int");
 
-                    b.Property<double>("ManAverageAge")
-                        .HasColumnType("float");
-
-                    b.Property<int>("ManCount")
-                        .HasColumnType("int");
-
-                    b.Property<double>("WomanAverageAge")
-                        .HasColumnType("float");
-
-                    b.Property<int>("WomanCount")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AssociatedWordId")
@@ -99,6 +111,17 @@ namespace WordNET_Server_2._0.Migrations
                     b.ToTable("Word");
                 });
 
+            modelBuilder.Entity("WordNET_Server_2._0.Models.Ages", b =>
+                {
+                    b.HasOne("WordNET_Server_2._0.Models.Statistics", "Statistics")
+                        .WithMany("Ages")
+                        .HasForeignKey("StatisticsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Statistics");
+                });
+
             modelBuilder.Entity("WordNET_Server_2._0.Models.AssociatedWord", b =>
                 {
                     b.HasOne("WordNET_Server_2._0.Models.Word", "Word")
@@ -114,7 +137,8 @@ namespace WordNET_Server_2._0.Migrations
                 {
                     b.HasOne("WordNET_Server_2._0.Models.AssociatedWord", "AssociatedWord")
                         .WithOne("Statistics")
-                        .HasForeignKey("WordNET_Server_2._0.Models.Statistics", "AssociatedWordId");
+                        .HasForeignKey("WordNET_Server_2._0.Models.Statistics", "AssociatedWordId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("AssociatedWord");
                 });
@@ -123,6 +147,11 @@ namespace WordNET_Server_2._0.Migrations
                 {
                     b.Navigation("Statistics")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("WordNET_Server_2._0.Models.Statistics", b =>
+                {
+                    b.Navigation("Ages");
                 });
 
             modelBuilder.Entity("WordNET_Server_2._0.Models.Word", b =>
