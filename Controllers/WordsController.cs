@@ -22,16 +22,16 @@ namespace WordNET_Server_2._0.Controllers
             try
             {
                 #region Initial Check
-                List<int> wordIds = [.. userAssociatedWordListDTO.KeyWordValueAssociatedWord.Keys];
+                List<int> wordIds = userAssociatedWordListDTO.KeyWordValueAssociatedWord.Keys.ToList();
 
                 int correctWordsCount = await _dbContext.Word.CountAsync(w => wordIds.Contains(w.Id));
 
-                if (_dbContext.Word.Count() != correctWordsCount)
-                    return BadRequest("One of words ids from DTO doesnt exist");
+                if (wordIds.Count != correctWordsCount)
+                    return BadRequest("One of words ids from DTO doesn't exist");
                 #endregion
 
                 #region Adding Associated Word
-                using DBContext _tempdbcontext = new();
+                using var _tempdbcontext = new DBContext();
 
                 var executionStrategy = _executionService.BeginExecutionStrategy(_tempdbcontext);
                 await executionStrategy.ExecuteAsync(async () =>
@@ -49,10 +49,10 @@ namespace WordNET_Server_2._0.Controllers
                         foreach (KeyValuePair<int, string> pairs in userAssociatedWordListDTO.KeyWordValueAssociatedWord)
                         {
                             Word? word = await _tempdbcontext.Word.FindAsync(pairs.Key)
-                                ?? throw new Exception($"Cant find word under Id => {pairs.Key}");
+                                ?? throw new Exception($"Can't find word under Id => {pairs.Key}");
 
                             AssociatedWord? associatedWord = await _tempdbcontext.AssociatedWord
-                                .FirstOrDefaultAsync(aw => aw.Name == pairs.Value);
+                                .FirstOrDefaultAsync(aw => aw.Name == pairs.Value && aw.WordId == pairs.Key);
 
                             if (associatedWord is null)
                             {
@@ -60,22 +60,20 @@ namespace WordNET_Server_2._0.Controllers
                                 {
                                     Name = pairs.Value,
                                     Count = 1,
-
                                     WordId = pairs.Key,
                                     Word = word,
                                 };
 
+                                // Attach the Questionee only once
+                                _tempdbcontext.Entry(newQuestionee).State = EntityState.Added;
+
                                 AssociatedWordQuestionee newAssociatedWordQuestionee = new()
                                 {
-                                    AssociatedWordId = newAssociatedWord.Id,
                                     AssociatedWord = newAssociatedWord,
-
-                                    QuestioneeId = newQuestionee.Id,
                                     Questionee = newQuestionee,
                                 };
 
                                 await _tempdbcontext.AssociatedWordQuestionees.AddAsync(newAssociatedWordQuestionee);
-                                await _tempdbcontext.SaveChangesAsync();
                             }
                             else
                             {
@@ -83,19 +81,22 @@ namespace WordNET_Server_2._0.Controllers
 
                                 AssociatedWordQuestionee newAssociatedWordQuestionee = new()
                                 {
-                                    AssociatedWordId = associatedWord.Id,
                                     AssociatedWord = associatedWord,
-
-                                    QuestioneeId = newQuestionee.Id,
                                     Questionee = newQuestionee,
                                 };
 
+                                // Attach the Questionee only once
+                                if (!_tempdbcontext.Entry(newQuestionee).IsKeySet)
+                                {
+                                    _tempdbcontext.Entry(newQuestionee).State = EntityState.Added;
+                                }
+
                                 _tempdbcontext.AssociatedWord.Update(associatedWord);
                                 await _tempdbcontext.AssociatedWordQuestionees.AddAsync(newAssociatedWordQuestionee);
-                                await _tempdbcontext.SaveChangesAsync();
                             }
                         }
 
+                        await _tempdbcontext.SaveChangesAsync();
                         transaction.Commit();
                     }
                     catch
@@ -113,6 +114,7 @@ namespace WordNET_Server_2._0.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
 
         [HttpGet("GetWordsFull")]
         public IActionResult GetWordsFull()
