@@ -174,5 +174,23 @@ namespace WordNET_Server_2._0.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("GetWordId")]
+        public async Task<IActionResult> GetWordId([FromQuery] string word)
+        {
+            try
+            {
+                Word? foundWord = await _dbContext.Word.FirstOrDefaultAsync(w => w.Name.ToLower() == word);
+
+                if (foundWord is null)
+                    return BadRequest("No Word Found");
+
+                return Ok(foundWord.Id);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
