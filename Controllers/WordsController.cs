@@ -17,15 +17,17 @@ namespace WordNET_Server_2._0.Controllers
 
 
         [HttpPost("AddAssociatedWord")]
-        public async Task<IActionResult> AddAssociatedWord([FromBody] UserAssociatedWordDTO associatedWordDTO)
+        public async Task<IActionResult> AddAssociatedWord([FromBody] UserAssociatedWordListDTO userAssociatedWordListDTO)
         {
             try
             {
                 #region Initial Check
-                Word? word = await _dbContext.Word.FindAsync(associatedWordDTO.WordId);
+                List<int> wordIds = [.. userAssociatedWordListDTO.KeyWordValueAssociatedWord.Keys];
 
-                if (word is null)
-                    return BadRequest("Specified Word Not Found In Database");
+                int correctWordsCount = await _dbContext.Word.CountAsync(w => wordIds.Contains(w.Id));
+
+                if (_dbContext.Word.Count() != correctWordsCount)
+                    return BadRequest("One of words ids from DTO doesnt exist");
                 #endregion
 
                 #region Adding Associated Word
@@ -38,55 +40,60 @@ namespace WordNET_Server_2._0.Controllers
 
                     try
                     {
-                        AssociatedWord? associatedWord = await _tempdbcontext.AssociatedWord
-                            .Include(aw => aw.Statistics)
-                            .FirstOrDefaultAsync(aw => aw.Name == associatedWordDTO.Name && aw.WordId == associatedWordDTO.WordId);
-
-                        if (associatedWord is null)
+                        Questionee newQuestionee = new()
                         {
-                            Ages createdAges = new()
-                            {
-                                IsMan = associatedWordDTO.IsMan,
-                                Age = associatedWordDTO.HumanAge,
-                            };
+                            IsMan = userAssociatedWordListDTO.IsMan,
+                            Age = userAssociatedWordListDTO.Age,
+                        };
 
-                            Statistics createdStatistics = new();
-
-                            AssociatedWord createdAssociatedWord = new()
-                            {
-                                Name = associatedWordDTO.Name,
-                                Count = 1,
-
-                                WordId = word.Id,
-                                Statistics = createdStatistics,
-                            };
-
-                            _tempdbcontext.AssociatedWord.Add(createdAssociatedWord);
-                            await _tempdbcontext.SaveChangesAsync();
-
-                            createdAssociatedWord.StatisticsId = createdStatistics.Id;
-
-                            createdStatistics.AssociatedWordId = createdAssociatedWord.Id;
-                            createdStatistics.AssociatedWord = createdAssociatedWord;
-
-                            createdAges.StatisticsId = createdStatistics.Id;
-                            createdAges.Statistics = createdStatistics;
-                            await _tempdbcontext.SaveChangesAsync();
-                        }
-                        else
+                        foreach (KeyValuePair<int, string> pairs in userAssociatedWordListDTO.KeyWordValueAssociatedWord)
                         {
-                            Ages ages = new()
+                            Word? word = await _tempdbcontext.Word.FindAsync(pairs.Key)
+                                ?? throw new Exception($"Cant find word under Id => {pairs.Key}");
+
+                            AssociatedWord? associatedWord = await _tempdbcontext.AssociatedWord
+                                .FirstOrDefaultAsync(aw => aw.Name == pairs.Value);
+
+                            if (associatedWord is null)
                             {
-                                IsMan = associatedWordDTO.IsMan,
-                                Age = associatedWordDTO.HumanAge,
-                                StatisticsId = associatedWord.Statistics.Id,
-                            };
+                                AssociatedWord newAssociatedWord = new()
+                                {
+                                    Name = pairs.Value,
+                                    Count = 1,
 
-                            await _tempdbcontext.Ages.AddAsync(ages);
-                            await _tempdbcontext.SaveChangesAsync();
+                                    WordId = pairs.Key,
+                                    Word = word,
+                                };
 
-                            associatedWord.Count += 1;
-                            await _tempdbcontext.SaveChangesAsync();
+                                AssociatedWordQuestionee newAssociatedWordQuestionee = new()
+                                {
+                                    AssociatedWordId = newAssociatedWord.Id,
+                                    AssociatedWord = newAssociatedWord,
+
+                                    QuestioneeId = newQuestionee.Id,
+                                    Questionee = newQuestionee,
+                                };
+
+                                await _tempdbcontext.AssociatedWordQuestionees.AddAsync(newAssociatedWordQuestionee);
+                                await _tempdbcontext.SaveChangesAsync();
+                            }
+                            else
+                            {
+                                associatedWord.Count += 1;
+
+                                AssociatedWordQuestionee newAssociatedWordQuestionee = new()
+                                {
+                                    AssociatedWordId = associatedWord.Id,
+                                    AssociatedWord = associatedWord,
+
+                                    QuestioneeId = newQuestionee.Id,
+                                    Questionee = newQuestionee,
+                                };
+
+                                _tempdbcontext.AssociatedWord.Update(associatedWord);
+                                await _tempdbcontext.AssociatedWordQuestionees.AddAsync(newAssociatedWordQuestionee);
+                                await _tempdbcontext.SaveChangesAsync();
+                            }
                         }
 
                         transaction.Commit();
@@ -112,7 +119,7 @@ namespace WordNET_Server_2._0.Controllers
         {
             try
             {
-                IEnumerable<WordDTO> words = _dbContext.Word
+                /*IEnumerable<WordDTO> words = _dbContext.Word
                     .Include(w => w.AssociatedWords)
                     .ThenInclude(aw => aw.Statistics)
                     .ThenInclude(s => s.Ages)
@@ -137,7 +144,8 @@ namespace WordNET_Server_2._0.Controllers
                         }),
                     });
 
-                return Ok(JsonConvert.SerializeObject(words));
+                return Ok(JsonConvert.SerializeObject(words));*/
+                return Ok();
             }
             catch (Exception ex)
             {

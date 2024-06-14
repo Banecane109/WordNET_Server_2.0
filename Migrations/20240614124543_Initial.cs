@@ -11,6 +11,20 @@ namespace WordNET_Server_2._0.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Questionee",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    IsMan = table.Column<bool>(type: "bit", nullable: false),
+                    Age = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Questionee", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Word",
                 columns: table => new
                 {
@@ -31,8 +45,7 @@ namespace WordNET_Server_2._0.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Count = table.Column<int>(type: "int", nullable: false),
-                    WordId = table.Column<int>(type: "int", nullable: false),
-                    StatisticsId = table.Column<int>(type: "int", nullable: false)
+                    WordId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -46,49 +59,28 @@ namespace WordNET_Server_2._0.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Statistics",
+                name: "GetAssociatedWordQuestionee",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    AssociatedWordId = table.Column<int>(type: "int", nullable: true)
+                    AssociatedWordId = table.Column<int>(type: "int", nullable: false),
+                    QuestioneeId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Statistics", x => x.Id);
+                    table.PrimaryKey("PK_GetAssociatedWordQuestionee", x => new { x.AssociatedWordId, x.QuestioneeId });
                     table.ForeignKey(
-                        name: "FK_Statistics_AssociatedWord_AssociatedWordId",
+                        name: "FK_GetAssociatedWordQuestionee_AssociatedWord_AssociatedWordId",
                         column: x => x.AssociatedWordId,
                         principalTable: "AssociatedWord",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Ages",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IsMan = table.Column<bool>(type: "bit", nullable: false),
-                    Age = table.Column<int>(type: "int", nullable: false),
-                    StatisticsId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Ages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Ages_Statistics_StatisticsId",
-                        column: x => x.StatisticsId,
-                        principalTable: "Statistics",
+                        name: "FK_GetAssociatedWordQuestionee_Questionee_QuestioneeId",
+                        column: x => x.QuestioneeId,
+                        principalTable: "Questionee",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Ages_StatisticsId",
-                table: "Ages",
-                column: "StatisticsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AssociatedWord_WordId",
@@ -96,24 +88,22 @@ namespace WordNET_Server_2._0.Migrations
                 column: "WordId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Statistics_AssociatedWordId",
-                table: "Statistics",
-                column: "AssociatedWordId",
-                unique: true,
-                filter: "[AssociatedWordId] IS NOT NULL");
+                name: "IX_GetAssociatedWordQuestionee_QuestioneeId",
+                table: "GetAssociatedWordQuestionee",
+                column: "QuestioneeId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Ages");
-
-            migrationBuilder.DropTable(
-                name: "Statistics");
+                name: "GetAssociatedWordQuestionee");
 
             migrationBuilder.DropTable(
                 name: "AssociatedWord");
+
+            migrationBuilder.DropTable(
+                name: "Questionee");
 
             migrationBuilder.DropTable(
                 name: "Word");

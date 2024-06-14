@@ -7,29 +7,28 @@ namespace WordNET_Server_2._0.DBRelations
     {
         public DbSet<Word> Word { get; set; }
         public DbSet<AssociatedWord> AssociatedWord { get; set; }
-        public DbSet<Statistics> Statistics { get; set; }
-        public DbSet<Ages> Ages { get; set; }
+        public DbSet<Questionee> Questionee { get; set; }
+        public DbSet<AssociatedWordQuestionee> AssociatedWordQuestionees { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Word>()
-                .HasMany(w => w.AssociatedWords)
-                .WithOne(aw => aw.Word)
-                .HasForeignKey(aw => aw.WordId)
-                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AssociatedWordQuestionee>()
+                .HasKey(aws => new
+                {
+                    aws.AssociatedWordId,
+                    aws.QuestioneeId,
+                });
 
-            modelBuilder.Entity<AssociatedWord>()
-                .HasOne(aw => aw.Statistics)
-                .WithOne(s => s.AssociatedWord)
-                .HasForeignKey<Statistics>(s => s.AssociatedWordId)
-                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AssociatedWordQuestionee>()
+                .HasOne(aws => aws.AssociatedWord)
+                .WithMany(aw => aw.AssociatedWordQuestionees)
+                .HasForeignKey(aws => aws.AssociatedWordId);
 
-            modelBuilder.Entity<Statistics>()
-                .HasMany(s => s.Ages)
-                .WithOne(a => a.Statistics)
-                .HasForeignKey(a => a.StatisticsId)
-                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AssociatedWordQuestionee>()
+                .HasOne(aws => aws.Questionee)
+                .WithMany(q => q.AssociatedWordQuestionees)
+                .HasForeignKey(aws => aws.QuestioneeId);
 
             base.OnModelCreating(modelBuilder);
         }

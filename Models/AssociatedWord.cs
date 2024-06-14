@@ -9,7 +9,6 @@
         public int WordId { get; set; }
         public Word Word { get; set; } = null!;
 
-        public int StatisticsId { get; set; }
-        public Statistics Statistics { get; set; } = null!;
+        public ICollection<AssociatedWordQuestionee> AssociatedWordQuestionees { get; set; } = [];
     }
 }
