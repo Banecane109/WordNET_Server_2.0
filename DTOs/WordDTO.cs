@@ -5,6 +5,6 @@
         public int Id { get; set; }
         public string Name { get; set; } = null!;
 
-        public IEnumerable<AssociatedWordDTO> AssociatedWords { get; set; } = [];
+        public IEnumerable<AssociatedWordDTO> AssociatedWordDTOs { get; set; } = [];
     }
 }

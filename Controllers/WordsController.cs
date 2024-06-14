@@ -119,33 +119,35 @@ namespace WordNET_Server_2._0.Controllers
         {
             try
             {
-                /*IEnumerable<WordDTO> words = _dbContext.Word
+                IEnumerable<WordDTO> words = _dbContext.Word
                     .Include(w => w.AssociatedWords)
-                    .ThenInclude(aw => aw.Statistics)
-                    .ThenInclude(s => s.Ages)
+                    .ThenInclude(aw => aw.AssociatedWordQuestionees)
+                    .ThenInclude(aws => aws.Questionee)
                     .Select(w => new WordDTO
                     {
                         Id = w.Id,
                         Name = w.Name,
 
-                        AssociatedWords = w.AssociatedWords.Select(aw => new AssociatedWordDTO
-                        {
-                            Id = aw.Id,
-                            Name = aw.Name,
-                            Count = aw.Count,
-
-                            Ages = aw.Statistics.Ages.Select(a => new AgesDTO
+                        AssociatedWordDTOs = w.AssociatedWords
+                            .Where(aw => aw.WordId == w.Id)
+                            .Select(aw => new AssociatedWordDTO
                             {
-                                Id = a.Age,
-                                IsMan = a.IsMan,
-                                Age = a.Age,
+                                Id = aw.Id,
+                                Name = aw.Name,
+                                Count = aw.Count,
+
+                                QuestioneeDTOs = aw.AssociatedWordQuestionees
+                                    .Where(aws => aws.AssociatedWordId == aw.Id)
+                                    .Select(aws => new QuestioneeDTO
+                                    {
+                                        Id = aws.Questionee.Id,
+                                        IsMan = aws.Questionee.IsMan,
+                                        Age = aws.Questionee.Age,
+                                    }),
                             }),
-                            WordId = w.Id,
-                        }),
                     });
 
-                return Ok(JsonConvert.SerializeObject(words));*/
-                return Ok();
+                return Ok(words);
             }
             catch (Exception ex)
             {
