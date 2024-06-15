@@ -15,6 +15,84 @@ namespace WordNET_Server_2._0.Controllers
         private readonly DBContext _dbContext = dBContext;
         private readonly IExecutionService _executionService = executionService;
 
+        [HttpGet("GetWords")]
+        public IActionResult GetWords()
+        {
+            try
+            {
+                IEnumerable<WordDTO> words = _dbContext.Word
+                    .Select(w => new WordDTO
+                    {
+                        Id = w.Id,
+                        Name = w.Name,
+                    });
+
+                return Ok(JsonConvert.SerializeObject(words));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("GetWordId")]
+        public async Task<IActionResult> GetWordId([FromQuery] string word)
+        {
+            try
+            {
+                Word? foundWord = await _dbContext.Word.FirstOrDefaultAsync(w => w.Name.ToLower() == word);
+
+                if (foundWord is null)
+                    return BadRequest("No Word Found");
+
+                return Ok(foundWord.Id);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("GetWordsFull")]
+        public IActionResult GetWordsFull()
+        {
+            try
+            {
+                IEnumerable<WordDTO> words = _dbContext.Word
+                    .Include(w => w.AssociatedWords)
+                    .ThenInclude(aw => aw.AssociatedWordQuestionees)
+                    .ThenInclude(aws => aws.Questionee)
+                    .Select(w => new WordDTO
+                    {
+                        Id = w.Id,
+                        Name = w.Name,
+
+                        AssociatedWordDTOs = w.AssociatedWords
+                            .Where(aw => aw.WordId == w.Id)
+                            .Select(aw => new AssociatedWordDTO
+                            {
+                                Id = aw.Id,
+                                Name = aw.Name,
+                                Count = aw.Count,
+
+                                QuestioneeDTOs = aw.AssociatedWordQuestionees
+                                    .Where(aws => aws.AssociatedWordId == aw.Id)
+                                    .Select(aws => new QuestioneeDTO
+                                    {
+                                        Id = aws.Questionee.Id,
+                                        IsMan = aws.Questionee.IsMan,
+                                        Age = aws.Questionee.Age,
+                                    }),
+                            }),
+                    });
+
+                return Ok(words);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
         [HttpPost("AddAssociatedWord")]
         public async Task<IActionResult> AddAssociatedWord([FromBody] UserAssociatedWordListDTO userAssociatedWordListDTO)
@@ -108,86 +186,6 @@ namespace WordNET_Server_2._0.Controllers
                 #endregion
 
                 return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-
-        [HttpGet("GetWordsFull")]
-        public IActionResult GetWordsFull()
-        {
-            try
-            {
-                IEnumerable<WordDTO> words = _dbContext.Word
-                    .Include(w => w.AssociatedWords)
-                    .ThenInclude(aw => aw.AssociatedWordQuestionees)
-                    .ThenInclude(aws => aws.Questionee)
-                    .Select(w => new WordDTO
-                    {
-                        Id = w.Id,
-                        Name = w.Name,
-
-                        AssociatedWordDTOs = w.AssociatedWords
-                            .Where(aw => aw.WordId == w.Id)
-                            .Select(aw => new AssociatedWordDTO
-                            {
-                                Id = aw.Id,
-                                Name = aw.Name,
-                                Count = aw.Count,
-
-                                QuestioneeDTOs = aw.AssociatedWordQuestionees
-                                    .Where(aws => aws.AssociatedWordId == aw.Id)
-                                    .Select(aws => new QuestioneeDTO
-                                    {
-                                        Id = aws.Questionee.Id,
-                                        IsMan = aws.Questionee.IsMan,
-                                        Age = aws.Questionee.Age,
-                                    }),
-                            }),
-                    });
-
-                return Ok(words);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpGet("GetWords")]
-        public IActionResult GetWords()
-        {
-            try
-            {
-                IEnumerable<WordDTO> words = _dbContext.Word
-                    .Select(w => new WordDTO
-                    {
-                        Id = w.Id,
-                        Name = w.Name,
-                    });
-
-                return Ok(JsonConvert.SerializeObject(words));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpGet("GetWordId")]
-        public async Task<IActionResult> GetWordId([FromQuery] string word)
-        {
-            try
-            {
-                Word? foundWord = await _dbContext.Word.FirstOrDefaultAsync(w => w.Name.ToLower() == word);
-
-                if (foundWord is null)
-                    return BadRequest("No Word Found");
-
-                return Ok(foundWord.Id);
             }
             catch (Exception ex)
             {
