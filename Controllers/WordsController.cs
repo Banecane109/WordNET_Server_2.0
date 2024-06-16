@@ -94,6 +94,39 @@ namespace WordNET_Server_2._0.Controllers
             }
         }
 
+        [HttpGet("GetAssociatedWords")]
+        public IActionResult GetAssociatedWords([FromQuery] int wordId)
+        {
+            try
+            {
+                IEnumerable<AssociatedWordDTO> associatedWords = _dbContext.AssociatedWord
+                    .Where(aw => aw.WordId == wordId)
+                    .Include(aw => aw.AssociatedWordQuestionees)
+                    .ThenInclude(aws => aws.Questionee)
+                    .Select(aw => new AssociatedWordDTO
+                    {
+                        Id = aw.Id,
+                        Name = aw.Name,
+                        Count = aw.Count,
+
+                        QuestioneeDTOs = aw.AssociatedWordQuestionees
+                                    .Where(aws => aws.AssociatedWordId == aw.Id)
+                                    .Select(aws => new QuestioneeDTO
+                                    {
+                                        Id = aws.Questionee.Id,
+                                        IsMan = aws.Questionee.IsMan,
+                                        Age = aws.Questionee.Age,
+                                    }),
+                    });
+
+                return Ok(associatedWords);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost("AddAssociatedWord")]
         public async Task<IActionResult> AddAssociatedWord([FromBody] UserAssociatedWordListDTO userAssociatedWordListDTO)
         {
